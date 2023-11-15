@@ -3,14 +3,14 @@ FROM python:3.10-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /code
+WORKDIR /app
 
-COPY requirements.txt /code/
+COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
-COPY ./entrypoint.sh /code/entrypoint.sh
-RUN chmod +x /code/entrypoint.sh
+COPY ./entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-COPY . /code/
+COPY . /app/
 
-ENTRYPOINT [ "/code/entrypoint.sh" ]
+ENTRYPOINT [ "/app/entrypoint.sh" ]
