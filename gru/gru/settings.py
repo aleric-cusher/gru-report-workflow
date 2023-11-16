@@ -131,6 +131,11 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Email Settings
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = "./email.txt"
+
+
 # Cors settings
 
 CORS_ALLOW_ALL_ORIGINS = True
