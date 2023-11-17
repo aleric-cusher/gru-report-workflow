@@ -1,4 +1,5 @@
 import os
+from superagi_client import Client
 
 
 class AGIClientInitializer:
@@ -13,3 +14,9 @@ class AGIClientInitializer:
         self.api_key = api_key
         self.host = host
         self.client = None
+
+    def get_client(self) -> Client:
+        if self.client is None:
+            self.client = Client(self.api_key, self.host)
+
+        return self.client
