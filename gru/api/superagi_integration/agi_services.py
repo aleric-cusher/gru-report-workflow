@@ -49,7 +49,9 @@ class AGIServices:
         )
 
     def create_agent(self, data: dict) -> int:
-        pass
+        agent_config = self._generate_agent_config(data)
+        agent = self.client.create_agent(agent_config=agent_config)
+        return agent["agent_id"]
 
     def run_agent(self, agent_id: int) -> int:
         pass

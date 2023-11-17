@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 from api.superagi_integration.agi_services import AGIServices
 from api.superagi_integration.agi_client_initializer import AGIClientInitializer
@@ -17,7 +17,8 @@ class TestAGIServices(SimpleTestCase):
             "api.superagi_integration.agi_client_initializer.AGIClientInitializer.get_client"
         )
         self.mock_get_client = self.mock_get_client_patcher.start()
-        self.mock_get_client.return_value = MockClient()
+        self.mock_client_instance = MagicMock()
+        self.mock_get_client.return_value = self.mock_client_instance
 
         self.api_key = "test_api_key"
         self.host = "http://test.com"
@@ -27,7 +28,11 @@ class TestAGIServices(SimpleTestCase):
     def tearDown(self) -> None:
         self.mock_get_client_patcher.stop()
 
-    def test_valid_creation(self):
+    @patch(
+        "api.superagi_integration.agi_client_initializer.AGIClientInitializer.get_client"
+    )
+    def test_valid_creation(self, mock_get_client):
+        mock_get_client.return_value = MockClient()
         services = AGIServices(self.client_initializer)
 
         self.assertIsInstance(services.client, MockClient)
@@ -48,3 +53,17 @@ class TestAGIServices(SimpleTestCase):
         config = services._generate_agent_config(data_dict)
 
         self.assertIsInstance(config, AgentConfig)
+
+    def test_create_agent_method(self):
+        self.mock_client_instance.create_agent.return_value = {"agent_id": 3}
+        data_dict = {
+            "company_name": "Test Company",
+            "company_website": "www.testwebsite.com",
+            "industry": "Tech",
+            "goals": "Testing Goals",
+        }
+        services = AGIServices(self.client_initializer)
+        agent_id = services.create_agent(data_dict)
+
+        self.assertEqual(agent_id, 3)
+        self.mock_client_instance.create_agent.assert_called_once()
