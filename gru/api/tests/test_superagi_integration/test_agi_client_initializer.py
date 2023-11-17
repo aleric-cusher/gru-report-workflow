@@ -4,20 +4,20 @@ from django.test import SimpleTestCase
 
 class TestAGIClientInitializer(SimpleTestCase):
     def test_valid_creation(self):
-        initializer = AGIClientInitializer(
-            "abcdefghijklmnopqrstuvwxyz", "http://127.0.0.1:3000"
-        )
+        api_key = "test_api_key"
+        host = "http://test.com"
+        initializer = AGIClientInitializer(api_key, host)
 
-        self.assertEqual(initializer.api_key, "abcdefghijklmnopqrstuvwxyz")
-        self.assertEqual(initializer.host, "http://127.0.0.1:3000")
+        self.assertEqual(initializer.api_key, api_key)
+        self.assertEqual(initializer.host, host)
         self.assertEqual(initializer.client, None)
 
     def test_invalid_creation(self):
         with self.assertRaises(TypeError):
-            initializer = AGIClientInitializer(1234567890, "http://127.0.0.1:3000")
+            initializer = AGIClientInitializer(1234567890, "http://test.com")
 
         with self.assertRaises(TypeError):
-            initializer = AGIClientInitializer("abcdefghijklmnopqrstuvwxyz", 1234567890)
+            initializer = AGIClientInitializer("test_api_key", 1234567890)
 
         with self.assertRaises(TypeError):
             initializer = AGIClientInitializer(1234567890, 1234567890)
