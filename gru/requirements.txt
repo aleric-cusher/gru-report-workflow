@@ -4,3 +4,4 @@ django-cors-headers
 coverage
 celery[beat]
 redis
+superagi-client
