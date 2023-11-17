@@ -32,16 +32,16 @@ class TestContactLeadView(TestCase):
             )
         )
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         for each in request_data.keys():
-            self.assertEquals(created_record[each], request_data[each])
+            self.assertEqual(created_record[each], request_data[each])
 
     def test_method_not_allowed_contact_lead_view(self):
         expected_json = {"error": "Method Not Allowed. Allowed methods are: POST"}
 
         response = self.client.get(reverse("contact-lead"))
 
-        self.assertEquals(response.status_code, 405)
+        self.assertEqual(response.status_code, 405)
         self.assertDictEqual(response.json(), expected_json)
 
     def test_missing_fields_contact_lead_view(self):
@@ -65,5 +65,5 @@ class TestContactLeadView(TestCase):
             content_type="application/json",
         )
 
-        self.assertEquals(response.status_code, 400)
-        self.assertEquals(response.json(), expected_json)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), expected_json)

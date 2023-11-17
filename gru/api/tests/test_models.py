@@ -24,7 +24,7 @@ class ContactLeadsModelTest(TestCase):
         contact_lead = model_to_dict(ContactLeads.objects.get(name="John Doe"))
 
         for each in expected_dict.keys():
-            self.assertEquals(contact_lead[each], expected_dict[each])
+            self.assertEqual(contact_lead[each], expected_dict[each])
 
     def test_required_fields(self):
         expected_dict = {
@@ -41,4 +41,4 @@ class ContactLeadsModelTest(TestCase):
         contact_lead = model_to_dict(ContactLeads.objects.get(name="Jane Doe"))
 
         for each in expected_dict.keys():
-            self.assertEquals(contact_lead[each], expected_dict[each])
+            self.assertEqual(contact_lead[each], expected_dict[each])
