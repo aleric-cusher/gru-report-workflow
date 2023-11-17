@@ -55,7 +55,7 @@ class TestAGIServices(SimpleTestCase):
         self.assertIsInstance(config, AgentConfig)
 
     def test_create_agent_method(self):
-        self.mock_client_instance.create_agent.return_value = {"agent_id": 3}
+        self.mock_client_instance.create_agent.return_value = {"agent_id": 1}
         data_dict = {
             "company_name": "Test Company",
             "company_website": "www.testwebsite.com",
@@ -65,5 +65,14 @@ class TestAGIServices(SimpleTestCase):
         services = AGIServices(self.client_initializer)
         agent_id = services.create_agent(data_dict)
 
-        self.assertEqual(agent_id, 3)
+        self.assertEqual(agent_id, 1)
         self.mock_client_instance.create_agent.assert_called_once()
+
+    def test_run_agent_method(self):
+        agent_id = 1
+        self.mock_client_instance.create_agent_run.return_value = {"run_id": 2}
+        services = AGIServices(self.client_initializer)
+        run_id = services.run_agent(agent_id)
+
+        self.assertEqual(run_id, 2)
+        self.mock_client_instance.create_agent_run.assert_called_once()

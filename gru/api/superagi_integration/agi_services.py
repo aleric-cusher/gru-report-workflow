@@ -54,7 +54,8 @@ class AGIServices:
         return agent["agent_id"]
 
     def run_agent(self, agent_id: int) -> int:
-        pass
+        run = self.client.create_agent_run(agent_id)
+        return run["run_id"]
 
     def create_and_run_agent(self, data: dict) -> list[int, int]:
         pass
