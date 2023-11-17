@@ -15,8 +15,11 @@ class AGIClientInitializer:
         self.host = host
         self.client = None
 
+    def _instantiate_client(self) -> None:
+        self.client = Client(self.api_key, self.host)
+
     def get_client(self) -> Client:
         if self.client is None:
-            self.client = Client(self.api_key, self.host)
+            self._instantiate_client()
 
         return self.client
