@@ -4,6 +4,7 @@ from django.test import SimpleTestCase
 from api.superagi_integration.agi_services import AGIServices
 from api.superagi_integration.agi_client_initializer import AGIClientInitializer
 from superagi_client import AgentConfig
+from api.superagi_integration.agent_status import AgentStatus
 
 
 class MockClient:
@@ -107,3 +108,12 @@ class TestAGIServices(SimpleTestCase):
 
         self.assertEqual(resumed, True)
         self.mock_client_instance.resume_agent.assert_called_once()
+
+    def test_check_run_status(self):
+        self.mock_client_instance.get_agent_run_status.return_value = {
+            "status": "COMPLETED"
+        }
+        status = self.services.check_run_status(1, 2)
+
+        self.assertIn(status, AgentStatus)
+        self.mock_client_instance.get_agent_run_status.assert_called_once()

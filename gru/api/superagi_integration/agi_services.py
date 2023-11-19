@@ -1,5 +1,6 @@
+from .agent_status import AgentStatus
 from .agi_client_initializer import AGIClientInitializer
-from superagi_client import AgentConfig
+from superagi_client import AgentConfig, AgentRunFilter
 
 
 class AGIServices:
@@ -71,4 +72,6 @@ class AGIServices:
         return True if result["result"] == "success" else False
 
     def check_run_status(self, agent_id: int, run_id: int = None):
-        pass
+        filter = AgentRunFilter(run_ids=[run_id])
+        status = self.client.get_agent_run_status(agent_id, agent_run_filter=filter)
+        return AgentStatus[status["status"]]
