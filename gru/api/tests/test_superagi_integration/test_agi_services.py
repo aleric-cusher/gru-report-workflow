@@ -24,6 +24,7 @@ class TestAGIServices(SimpleTestCase):
         self.host = "http://test.com"
 
         self.client_initializer = AGIClientInitializer(self.api_key, self.host)
+        self.services = AGIServices(self.client_initializer)
 
     def tearDown(self) -> None:
         self.mock_get_client_patcher.stop()
@@ -49,8 +50,7 @@ class TestAGIServices(SimpleTestCase):
             "goals": "Testing Goals",
         }
 
-        services = AGIServices(self.client_initializer)
-        config = services._generate_agent_config(data_dict)
+        config = self.services._generate_agent_config(data_dict)
 
         self.assertIsInstance(config, AgentConfig)
 
@@ -62,8 +62,7 @@ class TestAGIServices(SimpleTestCase):
             "industry": "Tech",
             "goals": "Testing Goals",
         }
-        services = AGIServices(self.client_initializer)
-        agent_id = services.create_agent(data_dict)
+        agent_id = self.services.create_agent(data_dict)
 
         self.assertEqual(agent_id, 1)
         self.mock_client_instance.create_agent.assert_called_once()
@@ -71,8 +70,7 @@ class TestAGIServices(SimpleTestCase):
     def test_run_agent_method(self):
         agent_id = 1
         self.mock_client_instance.create_agent_run.return_value = {"run_id": 2}
-        services = AGIServices(self.client_initializer)
-        run_id = services.run_agent(agent_id)
+        run_id = self.services.run_agent(agent_id)
 
         self.assertEqual(run_id, 2)
         self.mock_client_instance.create_agent_run.assert_called_once()
@@ -88,8 +86,7 @@ class TestAGIServices(SimpleTestCase):
         self.mock_client_instance.create_agent.return_value = {"agent_id": 1}
         self.mock_client_instance.create_agent_run.return_value = {"run_id": 2}
 
-        services = AGIServices(self.client_initializer)
-        agent_id, run_id = services.create_and_run_agent(data_dict)
+        agent_id, run_id = self.services.create_and_run_agent(data_dict)
 
         self.assertEqual(agent_id, 1)
         self.assertEqual(run_id, 2)
@@ -99,8 +96,7 @@ class TestAGIServices(SimpleTestCase):
 
     def test_pause_agent_method(self):
         self.mock_client_instance.pause_agent.return_value = {"result": "success"}
-        services = AGIServices(self.client_initializer)
-        paused = services.pause_agent(1, 2)
+        paused = self.services.pause_agent(1, 2)
 
         self.assertEqual(paused, True)
         self.mock_client_instance.pause_agent.assert_called_once()
