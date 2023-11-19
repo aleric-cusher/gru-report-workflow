@@ -100,3 +100,10 @@ class TestAGIServices(SimpleTestCase):
 
         self.assertEqual(paused, True)
         self.mock_client_instance.pause_agent.assert_called_once()
+
+    def test_resume_agent_method(self):
+        self.mock_client_instance.resume_agent.return_value = {"result": "success"}
+        resumed = self.services.resume_agent(1, 2)
+
+        self.assertEqual(resumed, True)
+        self.mock_client_instance.resume_agent.assert_called_once()

@@ -67,7 +67,8 @@ class AGIServices:
         return True if result["result"] == "success" else False
 
     def resume_agent(self, agent_id: int, run_id: int) -> None:
-        pass
+        result = self.client.resume_agent(agent_id=agent_id, agent_run_ids=[run_id])
+        return True if result["result"] == "success" else False
 
     def check_run_status(self, agent_id: int, run_id: int = None):
         pass
