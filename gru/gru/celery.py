@@ -3,6 +3,7 @@ import os
 from celery import Celery
 from django.conf import settings
 
+settings.configure()
 
 # create a Celery instance and configure it using the settings from Django
 app = Celery("superAGI_workflow")
