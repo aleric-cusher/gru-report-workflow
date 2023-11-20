@@ -139,3 +139,22 @@ EMAIL_FILE_PATH = "./email.txt"
 # Cors settings
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+# Logger Settings
+
+LOGGING = {
+    "version": 1,  # the dictConfig format version
+    "disable_existing_loggers": False,  # retain the default loggers
+    "level": os.getenv("DJANGO_LOG_LEVEL", "WARNING"),
+    "formatters": {
+        "verbose": {
+            "format": "{name} {levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+}
