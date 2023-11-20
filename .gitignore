@@ -1,8 +1,9 @@
 .env
-/postgres-data
+postgres-data
 db.sqlite3
 __pycache__
 .DS_Store
 .coverage
 .pytest_cache
 notes.*
+SuperAGI
