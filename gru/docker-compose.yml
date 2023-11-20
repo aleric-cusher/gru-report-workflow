@@ -1,0 +1,57 @@
+version: '0.1'
+
+services:
+  django:
+    container_name: django
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app/
+    env_file:
+      - .env
+    networks:
+      - gru_network
+    depends_on:
+      - postgresdb
+
+  celery:
+    build:
+      context: .
+      dockerfile: DockerfileCelery
+    networks:
+      - gru_network
+      - super_network
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  postgresdb:
+    container_name: postgres
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - gru_network
+
+  redis:
+    container_name: redis
+    image: redis/redis-stack
+    networks:
+      - gru_network
+    ports:
+      - "6379:6379"
+
+networks:
+  gru_network:
+    external: true
+  super_network:
+    external: true
