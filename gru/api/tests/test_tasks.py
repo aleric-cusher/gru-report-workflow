@@ -1,10 +1,15 @@
 from unittest.mock import patch
+from django.db.models.signals import post_save
 from django.test import TestCase
 from api.tasks import add_agent_workflow, logger
 from api.models import ContactLeads
+from api.signals import on_contact_lead_save
 
 
 class TestTasks(TestCase):
+    def setUp(self):
+        post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+
     @patch("api.tasks.AGIServices")
     def test_add_agent_workflow(self, mock_agi_services):
         mock_agi_services.return_value.create_and_run_agent.return_value = (1, 2)

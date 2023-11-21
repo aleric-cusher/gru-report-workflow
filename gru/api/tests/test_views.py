@@ -1,13 +1,18 @@
 import json
+from django.db.models.signals import post_save
 from django.forms import model_to_dict
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from api.models import ContactLeads
+from api.signals import on_contact_lead_save
 
 
 class TestContactLeadView(TestCase):
     client = Client()
+
+    def setUp(self):
+        post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
 
     def test_valid_contact_lead_view(self):
         request_data = {

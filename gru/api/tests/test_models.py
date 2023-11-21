@@ -1,9 +1,15 @@
+from django.db.models.signals import post_save
 from django.test import TestCase
-from api.models import ContactLeads
 from django.forms import model_to_dict
+
+from api.models import ContactLeads
+from api.signals import on_contact_lead_save
 
 
 class ContactLeadsModelTest(TestCase):
+    def setUp(self):
+        post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+
     def test_all_fields(self):
         expected_dict = {
             "name": "John Doe",
