@@ -1,3 +1,4 @@
+from typing import Dict
 from django.db import models
 
 
@@ -14,6 +15,14 @@ class ContactLeads(models.Model):
     goals = models.CharField(max_length=200)
 
     # SuperAGI agent run fields
-    superagi_run_complete = models.BooleanField(blank=True, default=False)
+    superagi_run_complete = models.BooleanField(blank=True, null=True)
     agent_id = models.PositiveIntegerField(blank=True, null=True)
     run_id = models.PositiveIntegerField(blank=True, null=True)
+
+    def get_agi_config_fields(self) -> Dict[str, any]:
+        return {
+            "company_name": self.company_name,
+            "company_website": self.company_website,
+            "industry": self.industry,
+            "goals": self.goals,
+        }
