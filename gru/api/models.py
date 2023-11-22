@@ -26,3 +26,6 @@ class ContactLeads(models.Model):
             "industry": self.industry,
             "goals": self.goals,
         }
+
+    class Meta:
+        app_label = "api"
