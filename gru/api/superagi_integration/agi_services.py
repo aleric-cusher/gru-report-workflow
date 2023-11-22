@@ -67,11 +67,11 @@ class AGIServices:
         result = self.client.pause_agent(agent_id=agent_id, agent_run_ids=[run_id])
         return True if result["result"] == "success" else False
 
-    def resume_agent(self, agent_id: int, run_id: int) -> None:
+    def resume_agent(self, agent_id: int, run_id: int) -> bool:
         result = self.client.resume_agent(agent_id=agent_id, agent_run_ids=[run_id])
         return True if result["result"] == "success" else False
 
-    def check_run_status(self, agent_id: int, run_id: int = None):
+    def check_run_status(self, agent_id: int, run_id: int) -> AgentStatus:
         filter = AgentRunFilter(run_ids=[run_id])
         status = self.client.get_agent_run_status(agent_id, agent_run_filter=filter)
         return AgentStatus[status["status"]]
