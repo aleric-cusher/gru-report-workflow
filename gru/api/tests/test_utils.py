@@ -1,12 +1,16 @@
 from unittest.mock import MagicMock, patch
-from django.test import TestCase
+
+from django.test import TestCase, override_settings
 from django.db.models.signals import post_save
+from django.core import mail
+from django.core.files.base import ContentFile
 
 from api.models import ContactLeads
 from api.signals import on_contact_lead_save
 from api.utils import (
     attempt_resume_agent,
     download_file_from_s3,
+    send_email_with_report,
     update_completed_runs,
     logger,
 )
@@ -166,5 +170,66 @@ class TestUtils(TestCase):
         self.assertFalse(result)
         self.assertIn(
             "ERROR:api.utils:Exception occured while downloading file form s3: Test exception",
+            log_capture.output,
+        )
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class EmailUtilityTest(TestCase):
+    def setUp(self):
+        # Create a test ContactLeads record
+        self.test_record = ContactLeads.objects.create(
+            company_name="Test Company",
+            name="Test User",
+            email="test@example.com"
+            # Add other necessary fields for your ContactLeads model
+        )
+
+    def test_send_email_with_report(self):
+        # Create an in-memory PDF file
+        pdf_content = b"Mock PDF content"
+        pdf_file = ContentFile(pdf_content)
+
+        with self.assertLogs(logger, "INFO") as log_capture:
+            send_email_with_report(self.test_record, pdf_file)
+
+        # Check if the email was sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # Check the subject, recipient, and attachment of the sent email
+        sent_email = mail.outbox[0]
+        expected_subject = f"{self.test_record.company_name} Analysis Report"
+        self.assertEqual(sent_email.subject, expected_subject)
+        self.assertEqual(
+            sent_email.body,
+            f"Dear {self.test_record.name},\n\nYour AI-generated report is ready and attached to this email. If you have any questions or need further assistance, please feel free to reach out. We're here to help!\n\nEnjoy your day!\n\nBest Regards,\nGRU\n",
+        )
+        self.assertEqual(sent_email.to, [self.test_record.email])
+
+        # Check if the attachment is present
+        self.assertEqual(len(sent_email.attachments), 1)
+        attachment = sent_email.attachments[0]
+        filename, attachment_content, mimetype = attachment
+        self.assertEqual(filename, f"{self.test_record.company_name} Report.pdf")
+        self.assertEqual(attachment_content, pdf_content)
+        self.assertEqual(mimetype, "application/pdf")
+
+        self.assertIn(
+            f"INFO:api.utils:Email with report for {self.test_record} sent successfully to {self.test_record.email}",
+            log_capture.output,
+        )
+
+    @patch("api.utils.EmailMessage.send")
+    def test_send_email_with_report_exception(self, mock_send):
+        mock_send.side_effect = Exception("Test exception")
+
+        pdf_content = b"Mock PDF content"
+        pdf_file = ContentFile(pdf_content)
+
+        with self.assertLogs(logger, "ERROR") as log_capture:
+            send_email_with_report(self.test_record, pdf_file)
+
+        self.assertIn(
+            f"ERROR:api.utils:Failed to send email with report to {self.test_record}. Error: Test exception",
             log_capture.output,
         )
