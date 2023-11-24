@@ -27,3 +27,20 @@ def update_completed_runs(
             logger.warn(
                 f"Exception occured while updating agent run status and resource url for {record}: {str(e)}"
             )
+
+
+def attempt_resume_agent(paused_run_records: List[ContactLeads], services: AGIServices):
+    if len(paused_run_records) < 1:
+        return
+
+    for record in paused_run_records:
+        try:
+            success = services.resume_agent(record.agent_id, record.run_id)
+            if not success:
+                logger.warn(f"Could not resume agent run for {record}")
+            else:
+                logger.info(f"Resumed agent run for {record}")
+        except Exception as e:
+            logger.warn(
+                f"Exception occured while resuming agent run for {record}: {str(e)}"
+            )
