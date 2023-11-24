@@ -36,10 +36,7 @@ class TestTasks(TestCase):
         )
 
     @patch("api.tasks.AGIServices")
-    @patch("api.tasks.logger")
-    def test_add_agent_workflow_exception_handling(
-        self, mock_logger, mock_agi_services
-    ):
+    def test_add_agent_workflow_exception_handling(self, mock_agi_services):
         mock_agi_services.return_value.create_and_run_agent.side_effect = Exception(
             "Test Exception"
         )
@@ -53,7 +50,8 @@ class TestTasks(TestCase):
             goals="test goals",
         )
 
-        add_agent_workflow(model_instance)
+        with self.assertLogs(logger, "ERROR") as log_capture:
+            add_agent_workflow(model_instance)
 
         model_instance.refresh_from_db()
 
@@ -61,8 +59,10 @@ class TestTasks(TestCase):
         self.assertIsNone(model_instance.run_id)
         self.assertIsNone(model_instance.superagi_run_complete)
 
-        expected_log_message = "Could not add agent workflow: Test Exception"
-        mock_logger.warn.assert_called_once_with(expected_log_message)
+        self.assertIn(
+            f"ERROR:api.tasks:Could not add agent workflow for {model_instance}: Test Exception",
+            log_capture.output,
+        )
 
     @patch("api.tasks.attempt_resume_agent")
     @patch("api.tasks.update_completed_runs")

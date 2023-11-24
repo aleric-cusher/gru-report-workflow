@@ -25,7 +25,7 @@ def add_agent_workflow(model_instance: ContactLeads) -> None:
             model_instance.superagi_run_complete = False
             model_instance.save()
     except Exception as e:
-        logger.warn(f"Could not add agent workflow: {str(e)}")
+        logger.error(f"Could not add agent workflow for {model_instance}: {str(e)}")
 
 
 @shared_task
