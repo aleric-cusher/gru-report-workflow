@@ -95,3 +95,7 @@ class AGIServices:
         filter = AgentRunFilter(run_ids=[run_id])
         status = self.client.get_agent_run_status(agent_id, agent_run_filter=filter)
         return AgentStatus[status["status"]]
+
+    def get_resource_url(self, run_id: int) -> str:
+        resource_dict = self.client.get_agent_run_resources(agent_run_ids=[run_id])
+        return resource_dict[str(run_id)][0]

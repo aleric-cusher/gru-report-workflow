@@ -117,3 +117,12 @@ class TestAGIServices(SimpleTestCase):
 
         self.assertIn(status, AgentStatus)
         self.mock_client_instance.get_agent_run_status.assert_called_once()
+
+    def test_get_resource_url(self):
+        self.mock_client_instance.get_agent_run_resources.return_value = {
+            "1": ["http://testurl.com/test_file.txt"]
+        }
+        resource = self.services.get_resource_url(1)
+
+        self.assertEqual(resource, "http://testurl.com/test_file.txt")
+        self.mock_client_instance.get_agent_run_resources.assert_called_once()
