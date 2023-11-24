@@ -1,10 +1,15 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from django.db.models.signals import post_save
 
 from api.models import ContactLeads
 from api.signals import on_contact_lead_save
-from api.utils import attempt_resume_agent, update_completed_runs, logger
+from api.utils import (
+    attempt_resume_agent,
+    download_file_from_s3,
+    update_completed_runs,
+    logger,
+)
 
 
 class TestUtils(TestCase):
@@ -126,3 +131,46 @@ class TestUtils(TestCase):
                 f"WARNING:api.utils:Exception occured while resuming agent run for {record}: Test exception",
                 log_capture.output,
             )
+
+    @patch("api.utils.boto3")
+    def test_download_file_from_s3(self, mock_boto):
+        test_url = "https://awsforagi.s3.amazonaws.com/public_resources/run_id57/sky_color_explanation.txt"
+        test_local_path = "test_path"
+        test_key_id = "test_key_id"
+        test_key = "test-xyzabc"
+        bucket = "awsforagi"
+        url_key = "public_resources/run_id57/sky_color_explanation.txt"
+
+        mock_s3 = MagicMock()
+        mock_s3.download_file.return_value = None
+        mock_boto.client.return_value = mock_s3
+
+        result = download_file_from_s3(test_url, test_local_path, test_key_id, test_key)
+
+        self.assertTrue(result)
+        mock_boto.client.assert_called_once_with(
+            "s3", aws_access_key_id=test_key_id, aws_secret_access_key=test_key
+        )
+        mock_s3.download_file.assert_called_once_with(bucket, url_key, test_local_path)
+
+    @patch("api.utils.boto3")
+    def test_download_file_from_s3_error(self, mock_boto):
+        test_url = "https://awsforagi.s3.amazonaws.com/public_resources/run_id57/sky_color_explanation.txt"
+        test_local_path = "test_path"
+        test_key_id = "test_key_id"
+        test_key = "test-xyzabc"
+
+        mock_s3 = MagicMock()
+        mock_s3.download_file.side_effect = Exception("Test exception")
+        mock_boto.client.return_value = mock_s3
+
+        with self.assertLogs(logger, "ERROR") as log_capture:
+            result = download_file_from_s3(
+                test_url, test_local_path, test_key_id, test_key
+            )
+
+        self.assertFalse(result)
+        self.assertIn(
+            "ERROR:api.utils:Exception occured while downloading file form s3: Test exception",
+            log_capture.output,
+        )

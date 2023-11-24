@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING, List
 import logging
 from .models import ContactLeads
 
+import boto3
+from urllib.parse import urlparse
+
 if TYPE_CHECKING:
     from .superagi_integration.agi_services import AGIServices
 
@@ -44,3 +47,24 @@ def attempt_resume_agent(paused_run_records: List[ContactLeads], services: AGISe
             logger.warn(
                 f"Exception occured while resuming agent run for {record}: {str(e)}"
             )
+
+
+def download_file_from_s3(s3_url, local_path, aws_access_key_id, aws_secret_access_key):
+    # Parse the S3 URL to get bucket and key
+    parsed_url = urlparse(s3_url)
+    bucket = parsed_url.netloc.split(".")[0]
+    key = parsed_url.path[1:]
+
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+    )
+
+    try:
+        # Download the file
+        s3.download_file(bucket, key, local_path)
+        return True
+    except Exception as e:
+        logger.error(f"Exception occured while downloading file form s3: {str(e)}")
+        return False
