@@ -16,36 +16,56 @@ class AGIServices:
         self.client = client_initializer_instance.get_client()
 
     def _generate_agent_config(self, data: dict) -> AgentConfig:
+        report_template = (
+            "Company Overview:\n"
+            "{company_overview}\n\n"
+            "Market Analysis:\n"
+            "{market_analysis}\n\n"
+            "Competitors:\n"
+            "{competitor_analysis}\n\n"
+            "Comparative Analysis:\n"
+            "{comparative_analysis}\n\n"
+            "Rating:\n"
+            "{company_rating}\n\n"
+            "Action Plan:\n"
+            "{action_plan}"
+        )
+
         return AgentConfig(
             name=f"{data['company_name']} Company Researcher",
             description="The agent researches the given company. It collects foundational information, rates the company and comes up with an action plan.",
             goal=[
-                f"Collect foundational information about the company {data['company_name']} (website: {data['company_website']} ), including the services offered and target market",
-                f"The company operates in the {data['industry']} and their goals are: `{data['goals']}`. Conduct a market analysis encompassing the examination of market trends, sizing, growth prospects, and potential risks, while also evaluating the company's market share and its market potential",
-                "Search the company's primary competitors, find their website links and compile a list",
-                "Look through the competitor websites and compare the company based on all the data collected. Assess brand narrtive, outreach, visibility, impact, originality etc",
-                "Rate the company based on all the data collected from 1 to 10 where 1 is the company performing badly as compared to the competition and 10 is the company performing better than the competition",
-                "Come up with a detailed action plan for the company to improve their market position",
-                "Generate a detailed report with all the above details with proper formatting(Highlighting, bullet points, headings) in a txt file with word limit of 600 words",
+                f"Collect foundational information about the company[{data['company_name']}] given their website[{data['company_website']}, including services offered, target market, and any other relevant details.",
+                f"Conduct a comprehensive market analysis for in the industry[{data['industry']}]. Include market trends, sizing, growth prospects, potential risks, market share, and potential.",
+                "Research and compile a list of primary competitors, including their websites.",
+                "Conduct a comparative analysis of competitors, focusing on brand narrative, outreach, visibility, impact, and originality.",
+                "Rate the company on a scale of 1 to 10 based on the collected data, where 1 indicates poor performance compared to competitors, and 10 indicates superior performance.",
+                f"Generate a detailed action plan for the company to improve its market position and to achieve their goals[{data['goals']}], incorporating findings from the analysis.",
+                f"Create a well-formatted and detailed report (in a txt file) using the following template:\n\n{report_template}",
             ],
-            instruction=["Make sure the data is authentic"],
+            instruction=[
+                "Use the provided template for the generated report to ensure a consistent and reproducible structure. Substitute placeholders ({company_overview}, {market_analysis}, etc.) with the actual information gathered during the process. All the headings and placeholders in the template are necessary.",
+                "Ensure the authenticity of the collected data.",
+                "Focus more on the indian context when researching.",
+                "Elaborate on market analysis, covering key aspects identified in the goal.",
+                "Offer detailed guidance on action plan elements and strategic recommendations.",
+                "Verify the accuracy of the URL when using the webscraper tool to ensure the collected data is relevant and reliable.",
+            ],
             agent_workflow="Goal Based Workflow",
             constraints=[
                 "If you are unsure how you previously did something or want to recall past events, thinking about similar events will help you remember.",
                 "Ensure the tool and args are as per current plan and reasoning",
                 'Exclusively use the tools listed under "TOOLS"',
-                "REMEMBER to format your response as JSON, using double quotes ("
-                ") around keys and string values, and commas (,) to separate items in arrays and objects. IMPORTANTLY, to use a JSON object as a string in another JSON object, you need to escape the double quotes.",
-                "When using the webscraper tool make sure the url is accurate",
-                "Make sure the report as detailed as possible",
+                'REMEMBER to format your response as JSON, using double quotes ("") around keys and string values, and commas (,) to separate items in arrays and objects. IMPORTANTLY, to use a JSON object as a string in another JSON object, you need to escape the double quotes.',
+                "Strive for a detailed report, considering all relevant aspects.",
             ],
             tools=[
                 {"name": "Google Search Toolkit"},
                 {"name": "File Toolkit"},
-                {"name": "Web Scraper Toolkit"},
+                {"name": "Web Scrapper Toolkit"},
             ],
             iteration_interval=500,
-            max_iterations=10,
+            max_iterations=25,
             model="gpt-4",
         )
 
