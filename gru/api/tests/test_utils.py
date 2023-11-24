@@ -57,10 +57,7 @@ class TestUtils(TestCase):
         services = MagicMock()
         services.get_resource_url.return_value = "http://test.com/resource_file.txt"
 
-        try:
-            update_completed_runs([], services)
-        except Exception as e:
-            self.fail("Exception: " + str(e))
+        update_completed_runs([], services)
 
         services.assert_not_called()
 
@@ -111,10 +108,7 @@ class TestUtils(TestCase):
         services = MagicMock()
         services.resume_agent.return_value = True
 
-        try:
-            attempt_resume_agent([], services)
-        except Exception as e:
-            self.fail("Exception: " + str(e))
+        attempt_resume_agent([], services)
 
         services.assert_not_called()
 
