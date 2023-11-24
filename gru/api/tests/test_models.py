@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.db.models.signals import post_save
 from django.test import TestCase
 from django.forms import model_to_dict
@@ -23,6 +24,7 @@ class ContactLeadsModelTest(TestCase):
             "superagi_run_complete": True,
             "agent_id": 393928,
             "run_id": 123,
+            "superagi_resource": "http://www.testcompany.com/color-of-sky.txt",
         }
 
         ContactLeads.objects.create(**expected_dict)
