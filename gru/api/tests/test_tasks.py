@@ -1,9 +1,10 @@
 from unittest.mock import patch
 from django.db.models.signals import post_save
 from django.test import TestCase
-from api.tasks import add_agent_workflow, logger
+from api.tasks import add_agent_workflow, handle_workflow_statuses, logger
 from api.models import ContactLeads
 from api.signals import on_contact_lead_save
+from api.superagi_integration.agent_status import AgentStatus
 
 
 class TestTasks(TestCase):
@@ -62,3 +63,56 @@ class TestTasks(TestCase):
 
         expected_log_message = "Could not add agent workflow: Test Exception"
         mock_logger.warn.assert_called_once_with(expected_log_message)
+
+    @patch("api.tasks.attempt_resume_agent")
+    @patch("api.tasks.update_completed_runs")
+    @patch("api.tasks.AGIServices")
+    def test_handle_workflow_statuses(
+        self, mock_agi_services, mock_completed, mock_resume
+    ):
+        mock_agi_services.return_value.check_run_status.side_effect = [
+            AgentStatus.COMPLETED,
+            AgentStatus.PAUSED,
+        ]
+        mock_completed.return_value, mock_resume.return_value = None, None
+
+        ContactLeads.objects.create(
+            name="John Doe",
+            phone="1234567890",
+            company_name="ABC Corp",
+            company_website="http://www.abccorp.com",
+            industry="Tech",
+            goals="Increase efficiency",
+            superagi_run_complete=False,
+        )
+        ContactLeads.objects.create(
+            name="Jane Doe",
+            phone="9876543210",
+            company_name="XYZ Corp",
+            company_website="http://www.xyzcorp.com",
+            industry="Finance",
+            goals="Maximize profits",
+            superagi_run_complete=False,
+        )
+
+        handle_workflow_statuses()
+
+        mock_agi_services.return_value.check_run_status.assert_called()
+        mock_completed.assert_called_once_with(
+            [ContactLeads.objects.get(name="John Doe")], mock_agi_services.return_value
+        )
+        mock_resume.assert_called_once_with(
+            [ContactLeads.objects.get(name="Jane Doe")], mock_agi_services.return_value
+        )
+
+    @patch("api.tasks.attempt_resume_agent")
+    @patch("api.tasks.update_completed_runs")
+    @patch("api.tasks.AGIServices")
+    def test_handle_workflow_statuses_nothing_to_check(
+        self, mock_agi_services, mock_completed, mock_resume
+    ):
+        handle_workflow_statuses()
+
+        mock_agi_services.assert_not_called()
+        mock_completed.assert_not_called()
+        mock_resume.assert_not_called()
