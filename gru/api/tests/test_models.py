@@ -25,6 +25,7 @@ class ContactLeadsModelTest(TestCase):
             "agent_id": 393928,
             "run_id": 123,
             "superagi_resource": "http://www.testcompany.com/color-of-sky.txt",
+            "email_sent": False,
         }
 
         ContactLeads.objects.create(**expected_dict)

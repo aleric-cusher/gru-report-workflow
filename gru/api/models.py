@@ -20,6 +20,8 @@ class ContactLeads(models.Model):
     run_id = models.PositiveIntegerField(blank=True, null=True)
     superagi_resource = models.URLField(blank=True, null=True)
 
+    email_sent = models.BooleanField(blank=True, null=True)
+
     def get_agi_config_fields(self) -> Dict[str, any]:
         return {
             "company_name": self.company_name,
