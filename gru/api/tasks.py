@@ -1,7 +1,14 @@
+import json
 import logging
 from celery import shared_task
 
-from .utils import attempt_resume_agent, update_completed_runs
+from .utils import (
+    attempt_resume_agent,
+    generate_pdf,
+    read_file_from_s3,
+    send_email_with_report,
+    update_completed_runs,
+)
 from .superagi_integration.agent_status import AgentStatus
 from .superagi_integration.agi_client_initializer import AGIClientInitializer
 from .superagi_integration.agi_services import AGIServices
@@ -51,3 +58,21 @@ def handle_workflow_statuses() -> None:
 
     update_completed_runs(completed_records, services)
     attempt_resume_agent(paused_records, services)
+
+
+@shared_task
+def process_and_email_report(record: ContactLeads) -> bool:
+    file_content = read_file_from_s3(record.superagi_resource)
+
+    if file_content is None:
+        return False
+
+    data = json.loads(file_content)
+    pdf_file = generate_pdf(data)
+
+    success = send_email_with_report(record, pdf_file)
+    if success:
+        record.email_sent = True
+        record.save()
+
+    return success

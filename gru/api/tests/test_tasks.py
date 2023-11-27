@@ -1,7 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from django.db.models.signals import post_save
 from django.test import TestCase
-from api.tasks import add_agent_workflow, handle_workflow_statuses, logger
+from api.tasks import (
+    add_agent_workflow,
+    handle_workflow_statuses,
+    logger,
+    process_and_email_report,
+)
 from api.models import ContactLeads
 from api.signals import on_contact_lead_save
 from api.superagi_integration.agent_status import AgentStatus
@@ -116,3 +121,43 @@ class TestTasks(TestCase):
         mock_agi_services.assert_not_called()
         mock_completed.assert_not_called()
         mock_resume.assert_not_called()
+
+    @patch("api.tasks.read_file_from_s3")
+    @patch("api.tasks.generate_pdf")
+    @patch("api.tasks.send_email_with_report")
+    def test_process_and_email_report(
+        self, mock_send_email, mock_generate_pdf, mock_read_from_s3
+    ):
+        mock_read_from_s3.return_value = '{"key": "value"}'
+        mock_generate_pdf.return_value = b"pdf_content"
+        mock_send_email.return_value = True
+
+        record = MagicMock()
+        record.superagi_resource = "http://test.com/test.txt"
+        record.save.return_value = None
+
+        result = process_and_email_report(record)
+
+        self.assertTrue(result)
+        mock_read_from_s3.assert_called_once_with("http://test.com/test.txt")
+        mock_generate_pdf.assert_called_once_with({"key": "value"})
+        mock_send_email.assert_called_once_with(record, b"pdf_content")
+
+    @patch("api.tasks.read_file_from_s3")
+    @patch("api.tasks.generate_pdf")
+    @patch("api.tasks.send_email_with_report")
+    def test_process_and_email_report_file_not_found(
+        self, mock_send_email, mock_generate_pdf, mock_read_from_s3
+    ):
+        mock_read_from_s3.return_value = None
+
+        record = MagicMock()
+        record.superagi_resource = "http://test.com/test.txt"
+        record.save.return_value = None
+
+        result = process_and_email_report(record)
+
+        self.assertFalse(result)
+        mock_read_from_s3.assert_called_once_with("http://test.com/test.txt")
+        mock_generate_pdf.assert_not_called()
+        mock_send_email.assert_not_called()
