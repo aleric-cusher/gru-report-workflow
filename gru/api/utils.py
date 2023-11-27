@@ -1,14 +1,18 @@
 from __future__ import annotations
 import os
-from typing import TYPE_CHECKING, BinaryIO, List
+from typing import TYPE_CHECKING, List
+from io import BytesIO
 
 import logging
 import boto3
 from urllib.parse import urlparse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 from django.core.mail import EmailMessage
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .models import ContactLeads
     from .superagi_integration.agi_services import AGIServices
 
@@ -108,7 +112,41 @@ def read_file_from_s3(
         return None
 
 
-def send_email_with_report(record: ContactLeads, pdf_file: BinaryIO) -> bool:
+def generate_pdf(data: dict[str, any]) -> BytesIO:
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+
+    styles = getSampleStyleSheet()
+    title_style = styles["Title"]
+    heading_style = styles["Heading1"]
+    content_style = styles["Normal"]
+
+    title = data.get("title", "")
+    title_paragraph = Paragraph(title, title_style)
+    title_paragraph.alignment = 1
+
+    headings_and_content = [title_paragraph]
+    for item in data.get("headings", []):
+        heading = item.get("heading", "")
+        content = item.get("content", "")
+
+        heading_paragraph = Paragraph(heading, heading_style)
+        headings_and_content.append(heading_paragraph)
+
+        content_paragraph = Paragraph(content, content_style)
+        content_width = pdf.width - pdf.leftMargin - pdf.rightMargin
+        content_paragraph.wrap(content_width, pdf)
+
+        content_paragraph = Paragraph(content, content_style)
+        headings_and_content.extend([Spacer(1, 3), content_paragraph, Spacer(1, 20)])
+
+    pdf.build(headings_and_content)
+    # Move to the beginning of the buffer before returning
+    buffer.seek(0)
+    return buffer
+
+
+def send_email_with_report(record: ContactLeads, pdf_file: BytesIO) -> bool:
     email = EmailMessage(
         subject=f"{record.company_name} Analysis Report",
         body=f"Dear {record.name},\n\nYour AI-generated report is ready and attached to this email. If you have any questions or need further assistance, please feel free to reach out. We're here to help!\n\nEnjoy your day!\n\nBest Regards,\nGRU\n",

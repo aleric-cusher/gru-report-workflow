@@ -1,3 +1,4 @@
+from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
@@ -10,6 +11,7 @@ from api.signals import on_contact_lead_save
 from api.utils import (
     attempt_resume_agent,
     download_file_from_s3,
+    generate_pdf,
     read_file_from_s3,
     send_email_with_report,
     update_completed_runs,
@@ -222,6 +224,26 @@ class TestUtils(TestCase):
             "s3", aws_access_key_id=test_key_id, aws_secret_access_key=test_key
         )
         mock_s3.get_object.assert_called_once_with(Bucket=bucket, Key=url_key)
+
+    def test_generate_pdf(self):
+        data = {
+            "title": "Office Smart Report",
+            "headings": [
+                {
+                    "heading": "Company Overview",
+                    "content": "Office Smart is a company that offers a wide range of office supplies and solutions to businesses of all sizes and individuals with home offices.",
+                },
+                {
+                    "heading": "Market Analysis",
+                    "content": "The office supplies market is a competitive one, with several key players. Office Smart has a significant market potential due to its broad target market and diverse product offerings.",
+                },
+            ],
+        }
+
+        pdf_buffer = generate_pdf(data)
+
+        self.assertIsInstance(pdf_buffer, BytesIO)
+        self.assertNotEqual(pdf_buffer.getvalue(), b"")
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
