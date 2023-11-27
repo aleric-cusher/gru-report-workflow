@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.test import TestCase
 from api.tasks import (
     add_agent_workflow,
@@ -8,13 +8,14 @@ from api.tasks import (
     process_and_email_report,
 )
 from api.models import ContactLeads
-from api.signals import on_contact_lead_save
+from api.signals import on_contact_lead_save, on_superagi_run_complete_update
 from api.superagi_integration.agent_status import AgentStatus
 
 
 class TestTasks(TestCase):
     def setUp(self):
         post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+        pre_save.disconnect(on_superagi_run_complete_update, sender=ContactLeads)
 
     @patch("api.tasks.AGIServices")
     def test_add_agent_workflow(self, mock_agi_services):

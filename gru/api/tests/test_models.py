@@ -1,15 +1,16 @@
 from django.db import IntegrityError
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.test import TestCase
 from django.forms import model_to_dict
 
 from api.models import ContactLeads
-from api.signals import on_contact_lead_save
+from api.signals import on_contact_lead_save, on_superagi_run_complete_update
 
 
 class ContactLeadsModelTest(TestCase):
     def setUp(self):
         post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+        pre_save.disconnect(on_superagi_run_complete_update, sender=ContactLeads)
 
     def test_all_fields(self):
         expected_dict = {

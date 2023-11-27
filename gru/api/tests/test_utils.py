@@ -2,12 +2,12 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.core import mail
 from django.core.files.base import ContentFile
 
 from api.models import ContactLeads
-from api.signals import on_contact_lead_save
+from api.signals import on_contact_lead_save, on_superagi_run_complete_update
 from api.utils import (
     attempt_resume_agent,
     download_file_from_s3,
@@ -22,6 +22,7 @@ from api.utils import (
 class TestUtils(TestCase):
     def setUp(self):
         post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+        pre_save.disconnect(on_superagi_run_complete_update, sender=ContactLeads)
 
         ContactLeads.objects.create(
             name="John Doe",

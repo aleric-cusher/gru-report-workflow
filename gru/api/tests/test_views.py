@@ -1,11 +1,11 @@
 import json
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.forms import model_to_dict
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from api.models import ContactLeads
-from api.signals import on_contact_lead_save
+from api.signals import on_contact_lead_save, on_superagi_run_complete_update
 
 
 class TestContactLeadView(TestCase):
@@ -13,6 +13,7 @@ class TestContactLeadView(TestCase):
 
     def setUp(self):
         post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
+        pre_save.disconnect(on_superagi_run_complete_update, sender=ContactLeads)
 
     def test_valid_contact_lead_view(self):
         request_data = {
