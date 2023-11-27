@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 from typing import TYPE_CHECKING, BinaryIO, List
 
 import logging
@@ -53,7 +54,10 @@ def attempt_resume_agent(
 
 
 def download_file_from_s3(
-    s3_url, local_path, aws_access_key_id, aws_secret_access_key
+    s3_url: str,
+    local_path: str,
+    aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
 ) -> bool:
     # Parse the S3 URL to get bucket and key
     parsed_url = urlparse(s3_url)
@@ -73,6 +77,35 @@ def download_file_from_s3(
     except Exception as e:
         logger.error(f"Exception occured while downloading file form s3: {str(e)}")
         return False
+
+
+def read_file_from_s3(
+    url: str,
+    aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
+) -> str | None:
+    # Parse the S3 URL
+    parsed_url = urlparse(url)
+    bucket = parsed_url.netloc.split(".")[0]
+    key = parsed_url.path[1:]
+
+    try:
+        # Create an S3 client
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+
+        # Read the file content
+        response = s3.get_object(Bucket=bucket, Key=key)
+        file_content = response["Body"].read().decode()
+
+        return file_content
+
+    except Exception as e:
+        logger.error(f"Error reading file from S3: {e}")
+        return None
 
 
 def send_email_with_report(record: ContactLeads, pdf_file: BinaryIO) -> bool:

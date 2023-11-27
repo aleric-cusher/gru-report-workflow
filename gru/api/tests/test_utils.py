@@ -10,6 +10,7 @@ from api.signals import on_contact_lead_save
 from api.utils import (
     attempt_resume_agent,
     download_file_from_s3,
+    read_file_from_s3,
     send_email_with_report,
     update_completed_runs,
     logger,
@@ -172,6 +173,55 @@ class TestUtils(TestCase):
             "ERROR:api.utils:Exception occured while downloading file form s3: Test exception",
             log_capture.output,
         )
+
+    @patch("api.utils.boto3")
+    def test_read_file_from_s3(self, mock_boto):
+        test_url = "https://awsforagi.s3.amazonaws.com/public_resources/run_id57/sky_color_explanation.txt"
+        test_key_id = "test_key_id"
+        test_key = "test-xyzabc"
+        expected_result = b'{"Content": "Test Content"}'
+        bucket = "awsforagi"
+        url_key = "public_resources/run_id57/sky_color_explanation.txt"
+
+        mock_s3 = MagicMock()
+        mock_s3.get_object.return_value = {
+            "Body": MagicMock(read=MagicMock(return_value=expected_result))
+        }
+        mock_boto.client.return_value = mock_s3
+
+        result = read_file_from_s3(test_url, test_key_id, test_key)
+
+        self.assertEqual(result, expected_result.decode())
+        mock_boto.client.assert_called_once_with(
+            "s3", aws_access_key_id=test_key_id, aws_secret_access_key=test_key
+        )
+        mock_s3.get_object.assert_called_once_with(Bucket=bucket, Key=url_key)
+
+    @patch("api.utils.boto3")
+    def test_read_file_from_s3_error(self, mock_boto):
+        test_url = "https://awsforagi.s3.amazonaws.com/public_resources/run_id57/sky_color_explanation.txt"
+        test_key_id = "test_key_id"
+        test_key = "test-xyzabc"
+        expected_result = b'{"Content": "Test Content"}'
+        bucket = "awsforagi"
+        url_key = "public_resources/run_id57/sky_color_explanation.txt"
+
+        mock_s3 = MagicMock()
+        mock_s3.get_object.side_effect = Exception("Test exception")
+        mock_boto.client.return_value = mock_s3
+
+        with self.assertLogs(logger, "ERROR") as log_capture:
+            result = read_file_from_s3(test_url, test_key_id, test_key)
+
+        self.assertIsNone(result)
+        self.assertIn(
+            "ERROR:api.utils:Error reading file from S3: Test exception",
+            log_capture.output,
+        )
+        mock_boto.client.assert_called_once_with(
+            "s3", aws_access_key_id=test_key_id, aws_secret_access_key=test_key
+        )
+        mock_s3.get_object.assert_called_once_with(Bucket=bucket, Key=url_key)
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
