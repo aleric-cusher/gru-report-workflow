@@ -6,3 +6,4 @@ celery[beat]
 redis
 superagi-client
 boto3
+reportlab
