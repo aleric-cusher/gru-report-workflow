@@ -1,11 +1,12 @@
 from __future__ import absolute_import, unicode_literals
+
 import os
 from celery import Celery
-import django
+from celery.schedules import crontab
+
 from django.conf import settings
 
-settings.configure()
-django.setup()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gru.settings")
 
 # create a Celery instance and configure it using the settings from Django
 app = Celery("SuperAGI_workflow")
@@ -19,3 +20,12 @@ app.conf.update(
 
 # Auto-discover tasks in all installed apps
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
+
+# Configure periodic tasks
+app.conf.beat_schedule = {
+    "handle_and_check_agent_runs_every_10m": {
+        "task": "api.tasks.handle_workflow_statuses",
+        "schedule": crontab(minute="*/10"),
+    },
+}
