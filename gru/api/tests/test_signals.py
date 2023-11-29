@@ -26,7 +26,7 @@ class ContactLeadsSignalTest(TestCase):
 
         # Disconnect the signal to avoid interference with other tests
         post_save.disconnect(on_contact_lead_save, sender=ContactLeads)
-        mock_add_agent_workflow.assert_called_once_with(contact_lead_instance)
+        mock_add_agent_workflow.assert_called_once_with(contact_lead_instance.pk)
 
     def test_on_superagi_run_complete_update(self):
         contact_lead_instance = ContactLeads.objects.create(name="Test Contact Lead")
@@ -44,4 +44,4 @@ class ContactLeadsSignalTest(TestCase):
                 contact_lead_instance.save()
 
         pre_save.disconnect(on_superagi_run_complete_update, sender=ContactLeads)
-        mock_process_and_email_report.assert_called_once_with(contact_lead_instance)
+        mock_process_and_email_report.assert_called_once_with(contact_lead_instance.pk)

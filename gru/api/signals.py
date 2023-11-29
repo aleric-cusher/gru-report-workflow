@@ -10,7 +10,7 @@ def on_contact_lead_save(
     sender: ContactLeads, instance: ContactLeads, created: bool, **kwargs
 ):
     if created:
-        add_agent_workflow.delay(instance)
+        add_agent_workflow.delay(instance.pk)
 
 
 @receiver(pre_save, sender=ContactLeads)
@@ -24,4 +24,4 @@ def on_superagi_run_complete_update(
             and instance.superagi_run_complete
             and instance.superagi_resource
         ):
-            process_and_email_report.delay(instance)
+            process_and_email_report.delay(instance.pk)
