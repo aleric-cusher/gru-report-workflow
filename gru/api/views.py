@@ -1,10 +1,12 @@
 import json
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 
 from .forms import ContactLeadsForm
 
 
+@csrf_exempt
 def contact_lead(request: HttpRequest):
     if request.method != "POST":
         return JsonResponse(
