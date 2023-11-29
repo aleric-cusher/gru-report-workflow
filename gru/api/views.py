@@ -21,7 +21,7 @@ def contact_lead(request: HttpRequest):
         return JsonResponse(
             {
                 "success": True,
-                "message": "Form recieved, We will get back to you shortly!",
+                "message": "Form received, We will get back to you shortly!",
             },
             status=200,
         )
