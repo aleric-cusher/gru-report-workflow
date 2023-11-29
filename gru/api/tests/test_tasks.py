@@ -30,7 +30,7 @@ class TestTasks(TestCase):
             goals="test goals",
         )
 
-        add_agent_workflow(model_instance)
+        add_agent_workflow(model_instance.pk)
 
         model_instance.refresh_from_db()
         self.assertEqual(model_instance.agent_id, 1)
@@ -57,7 +57,7 @@ class TestTasks(TestCase):
         )
 
         with self.assertLogs(logger, "ERROR") as log_capture:
-            add_agent_workflow(model_instance)
+            add_agent_workflow(model_instance.pk)
 
         model_instance.refresh_from_db()
 
@@ -133,11 +133,11 @@ class TestTasks(TestCase):
         mock_generate_pdf.return_value = b"pdf_content"
         mock_send_email.return_value = True
 
-        record = MagicMock()
-        record.superagi_resource = "http://test.com/test.txt"
-        record.save.return_value = None
+        record = ContactLeads.objects.create(
+            superagi_resource="http://test.com/test.txt"
+        )
 
-        result = process_and_email_report(record)
+        result = process_and_email_report(record.pk)
 
         self.assertTrue(result)
         mock_read_from_s3.assert_called_once_with("http://test.com/test.txt")
@@ -152,11 +152,11 @@ class TestTasks(TestCase):
     ):
         mock_read_from_s3.return_value = None
 
-        record = MagicMock()
-        record.superagi_resource = "http://test.com/test.txt"
-        record.save.return_value = None
+        record = ContactLeads.objects.create(
+            superagi_resource="http://test.com/test.txt"
+        )
 
-        result = process_and_email_report(record)
+        result = process_and_email_report(record.pk)
 
         self.assertFalse(result)
         mock_read_from_s3.assert_called_once_with("http://test.com/test.txt")

@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def add_agent_workflow(model_instance: ContactLeads) -> None:
+def add_agent_workflow(primary_key: int) -> None:
+    model_instance = ContactLeads.objects.get(pk=primary_key)
     data_dict = model_instance.get_agi_config_fields()
 
     initializer = AGIClientInitializer()
@@ -61,7 +62,8 @@ def handle_workflow_statuses() -> None:
 
 
 @shared_task
-def process_and_email_report(record: ContactLeads) -> bool:
+def process_and_email_report(primary_key: int) -> bool:
+    record = ContactLeads.objects.get(pk=primary_key)
     file_content = read_file_from_s3(record.superagi_resource)
 
     if file_content is None:
