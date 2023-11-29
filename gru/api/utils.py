@@ -31,7 +31,7 @@ def update_completed_runs(
             record.superagi_resource = url
             record.superagi_run_complete = True
             record.save()
-            logger.info("Agent run complete for {record}")
+            logger.info(f"Agent run complete for {record}")
         except Exception as e:
             logger.warn(
                 f"Exception occured while updating agent run status and resource url for {record}: {str(e)}"
@@ -165,7 +165,7 @@ def send_email_with_report(record: ContactLeads, pdf_file: BytesIO) -> bool:
         logger.info(
             f"Email with report for {record} sent successfully to {record.email}"
         )
-        return False
+        return True
     except Exception as e:
         logger.error(f"Failed to send email with report to {record}. Error: {str(e)}")
-        return True
+        return False

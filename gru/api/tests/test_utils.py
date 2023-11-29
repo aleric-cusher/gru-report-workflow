@@ -264,7 +264,9 @@ class EmailUtilityTest(TestCase):
         pdf_file = ContentFile(pdf_content)
 
         with self.assertLogs(logger, "INFO") as log_capture:
-            send_email_with_report(self.test_record, pdf_file)
+            success = send_email_with_report(self.test_record, pdf_file)
+
+        self.assertTrue(success)
 
         # Check if the email was sent
         self.assertEqual(len(mail.outbox), 1)
@@ -300,7 +302,9 @@ class EmailUtilityTest(TestCase):
         pdf_file = ContentFile(pdf_content)
 
         with self.assertLogs(logger, "ERROR") as log_capture:
-            send_email_with_report(self.test_record, pdf_file)
+            success = send_email_with_report(self.test_record, pdf_file)
+
+        self.assertFalse(success)
 
         self.assertIn(
             f"ERROR:api.utils:Failed to send email with report to {self.test_record}. Error: Test exception",
