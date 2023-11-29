@@ -7,3 +7,5 @@ __pycache__
 .pytest_cache
 notes.*
 SuperAGI
+frontend
+agent_config_test.*
