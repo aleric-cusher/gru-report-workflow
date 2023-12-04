@@ -34,17 +34,17 @@ class AGIServices:
             name=f"{data['company_name']} Company Researcher",
             description="The agent researches the given company. It collects foundational information, rates the company and comes up with an action plan.",
             goal=[
-                f"Collect foundational information about the company[{data['company_name']}] given their website[{data['company_website']}, including services offered, target market, and any other relevant details.",
-                f"Conduct a comprehensive market analysis for in the {data['industry']}. Include market trends, sizing, growth prospects, potential risks, market share, and potential.",
+                f"Collect foundational information about {data['company_name']} given their website({data['company_website']}), including services offered, target market, and any other relevant details.",
+                f"Conduct a comprehensive market analysis for {data['company_name']} in the [{data['industry']}] industry. Include market trends, sizing, growth prospects, potential risks, market share, and potential.",
                 "Research and compile a list of primary competitors, including their websites.",
-                "Conduct a comparative analysis of competitors, focusing on brand narrative, outreach, visibility, impact, and originality.",
-                "Rate the company on a scale of 1 to 10 based on the collected data, where 1 indicates poor performance compared to competitors, and 10 indicates superior performance.",
-                f"Generate a detailed action plan for the company to improve its market position and to achieve their goals[{data['goals']}], incorporating findings from the analysis.",
-                f"Create a well-formatted and detailed report (in a json file) using the following template:\n\n{json_template}",
+                "Conduct a meticulous comparative analysis of competitors, focusing on brand narrative, outreach, visibility, impact, and originality.",
+                f"Evaluate {data['company_name']}'s performance relative to competitors on a scale of 1 to 10. Justify the rating by comparing key performance indicators, considering factors like market share, customer satisfaction, and overall brand strength. A rating of 1 signifies poor performance compared to competitors, while 10 indicates superior performance.",
+                f"Develop a detailed action plan for {data['company_name']} to enhance its market position and achieve the specified goals ({data['goals']}). Incorporate findings from the market analysis and competitor comparisons. Provide actionable recommendations for each aspect, including marketing strategies, product/service enhancements, etc.",
+                f"Produce a well-structured and detailed report in JSON format, adhering to the provided template. Ensure that each section, including company overview, market analysis, competitor insights, performance rating, and action plan, is filled with comprehensive and coherent information. Json template:\n\n{json_template}",
             ],
             instruction=[
-                "Use the provided template for the generated report to ensure a consistent and reproducible structure. Substitute placeholders ({company_name}, {company_overview}, {market_analysis}, etc.) with the actual information gathered during the process. All the headings and placeholders in the template are necessary.",
-                "Generate detailed content for each section of the report. Provide comprehensive information, elaborate on key points, and ensure that the content is sufficiently detailed to convey a thorough understanding of each aspect. Aim for clarity and depth in your responses, using complete sentences and additional context where necessary.",
+                "Adhere to the provided template for the report to maintain a consistent and reproducible structure. Ensure all headings and placeholders ({company_name}, {company_overview}, {market_analysis}, etc.) are appropriately substituted with the actual information gathered.",
+                "Generate detailed content for each section of the report. Provide comprehensive information, elaborate on key points, and ensure that the content is sufficiently detailed to convey a thorough understanding of each aspect. Aim for clarity and depth in the report, using complete sentences and additional context where necessary.",
                 "Ensure the authenticity of the collected data.",
                 "Focus on the indian context when researching.",
                 "Elaborate on market analysis, covering key aspects identified in the goal.",
@@ -57,7 +57,6 @@ class AGIServices:
                 "Ensure the tool and args are as per current plan and reasoning",
                 'Exclusively use the tools listed under "TOOLS"',
                 'REMEMBER to format your response as JSON, using double quotes ("") around keys and string values, and commas (,) to separate items in arrays and objects. IMPORTANTLY, to use a JSON object as a string in another JSON object, you need to escape the double quotes.',
-                "Strive for detailed content, considering all relevant aspects.",
             ],
             tools=[
                 {"name": "Google Search Toolkit"},
@@ -94,7 +93,7 @@ class AGIServices:
     def check_run_status(self, agent_id: int, run_id: int) -> AgentStatus:
         filter = AgentRunFilter(run_ids=[run_id])
         status = self.client.get_agent_run_status(agent_id, agent_run_filter=filter)
-        return AgentStatus[status["status"]]
+        return AgentStatus[status[0]["status"]]
 
     def get_resource_url(self, run_id: int) -> str:
         resource_dict = self.client.get_agent_run_resources(agent_run_ids=[run_id])
