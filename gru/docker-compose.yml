@@ -23,7 +23,6 @@ services:
       dockerfile: DockerfileCelery
     networks:
       - gru_network
-      - super_network
     env_file:
       - .env
     depends_on:
@@ -52,6 +51,4 @@ services:
 
 networks:
   gru_network:
-    external: true
-  super_network:
     external: true
