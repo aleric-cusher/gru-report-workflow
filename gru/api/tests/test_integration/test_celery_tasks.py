@@ -1,5 +1,7 @@
 from typing import Any
 from unittest.mock import MagicMock, patch, call
+
+from django.core import mail
 from django.test import TestCase
 from django.db.models.signals import pre_save, post_save
 
@@ -163,3 +165,59 @@ class TestCeleryTasksWorkflow(TestCase):
         self.assertIn(
             f"INFO:api.utils:Resumed agent run for {obj2}", log_capture.output
         )
+
+    @patch("api.tasks.read_file_from_s3")
+    def test_process_and_email_report(self, mock_read_from_s3: MagicMock):
+        mock_read_from_s3.return_value = """{
+            "title": "Test Company Report",
+            "headings": [
+                {"heading": "Company Overview", "content": "Test Company is a company that offers a wide range of office supplies and solutions to businesses of all sizes and individuals with home offices."},
+                {"heading": "Market Analysis", "content": "The office supplies market is a competitive one, with several key players. Test Company has a significant market potential due to its broad target market and diverse product offerings."},
+                {"heading": "Competitor Analysis", "content": "Primary competitors of Test Company include Offiworld and Successories. While Offiworld has a strong outreach strategy with its newsletter service, Successories differentiates itself with its unique range of corporate gifts."},
+                {"heading": "Comparative Analysis", "content": "Test Company has a clear brand narrative and a strong online presence. However, it could improve its outreach, visibility, and originality by adopting proactive methods like newsletters, leveraging social media platforms more effectively, and offering unique products or expanding its services."},
+                {"heading": "Rating", "content": "7 out of 10. Test Company is performing well but has room for improvement, particularly in terms of outreach, visibility, and originality."},
+                {"heading": "Action Plan", "content": "The action plan for Test Company includes enhancing outreach and visibility, differentiating offerings, improving customer engagement, and exploring strategic partnerships. Implementing these strategies can help Test Company improve its market position and get ahead of the competition."}
+            ]
+        }"""
+
+        data = {
+            "name": "test2",
+            "email": "test2@test.com",
+            "phone": "1234567892",
+            "message": "message2",
+            "industry": "Electronics",
+            "company_website": "https://www.companywebsite2.com",
+            "goals": "goals2",
+            "company_name": "Company Name 2",
+            "superagi_run_complete": False,
+            "superagi_resource": "http://aws.file/some_file.json",
+            "agent_id": 2,
+            "run_id": 2,
+        }
+        contact_lead = ContactLeads.objects.create(**data)
+
+        result = process_and_email_report(contact_lead.pk)
+
+        contact_lead.refresh_from_db()
+
+        self.assertTrue(result)
+        self.assertTrue(contact_lead.email_sent)
+
+        mock_read_from_s3.assert_called_once_with("http://aws.file/some_file.json")
+
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        expected_subject = f"{contact_lead.company_name} Analysis Report"
+        self.assertEqual(sent_email.subject, expected_subject)
+        self.assertEqual(
+            sent_email.body,
+            f"Dear {contact_lead.name},\n\nYour AI-generated report is ready and attached to this email. If you have any questions or need further assistance, please feel free to reach out. We're here to help!\n\nEnjoy your day!\n\nBest Regards,\nGRU\n",
+        )
+        self.assertEqual(sent_email.to, [contact_lead.email])
+
+        # Check if the attachment is present
+        self.assertEqual(len(sent_email.attachments), 1)
+        attachment = sent_email.attachments[0]
+        filename, _, mimetype = attachment
+        self.assertEqual(filename, f"{contact_lead.company_name} Report.pdf")
+        self.assertEqual(mimetype, "application/pdf")
