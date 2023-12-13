@@ -1,0 +1,22 @@
+version: '0.1'
+
+services:
+  frontend:
+    image: react-frontend
+    build:
+      dockerfile: Dockerfile
+    container_name: frontend
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "1573:5173"
+    networks:
+      - gru_network
+
+volumes:
+  node_modules:
+
+networks:
+  gru_network:
+    external: true
