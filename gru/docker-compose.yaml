@@ -35,7 +35,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     env_file:
       - .env
     networks:
@@ -52,3 +52,6 @@ services:
 networks:
   gru_network:
     external: true
+
+volumes:
+  postgres-data:
