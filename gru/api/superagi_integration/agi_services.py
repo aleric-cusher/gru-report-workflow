@@ -64,7 +64,7 @@ class AGIServices:
                 {"name": "Web Scrapper Toolkit"},
             ],
             iteration_interval=500,
-            max_iterations=25,
+            max_iterations=50,
             model="gpt-4",
         )
 
