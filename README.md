@@ -12,14 +12,6 @@ The Company report generator is designed to facilitate companies in generating A
 - PDF Conversion and Emailing: Converts reports to PDF and sends them to the provided email addresses.
 - Organized Codebase: Follows best practices, including code organization and adherence to the three rules of simple design.
 
-# Requirements
-
-    Python 3.x
-    Django (version)
-    SuperAGI (version)
-    Celery (version)
-    Amazon S3 credentials
-    ...
 
 # Get it up and running
 
